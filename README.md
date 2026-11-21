@@ -16,7 +16,7 @@ Siden ligger på GitHub Pages, og scorene lagres i Firebase slik at alle telefon
 ### 2. GitHub Pages (siden)
 1. Last opp alle filene til repoet: **Add file › Upload files**, dra inn filene og trykk **Commit changes**.
 2. Gå til **Settings › Pages**. Under **Build and deployment** velger du **Deploy from a branch**, branch `main` og mappe `/ (root)`, og trykker **Save**.
-3. Etter et minutt eller to ligger appen på https://tobias265.github.io/gutta-golf-2026/
+3. Etter et minutt eller to ligger appen på https://tobiasskodbo-crypto.github.io/la-cala-2027/
 
 ### 3. På telefonen
 - **iPhone:** åpne lenken i Safari › Del › **Legg til på Hjem-skjerm**.
