@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>La Cala 2027</title>
+<meta name="description" content="Live scoretavle for golfturen til La Cala 5.–7. februar 2027.">
+<meta name="theme-color" content="#11261D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="La Cala">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+
+/* Layout: one phone-width column under a pine header, fixed tab bar at the thumb. Scores use real scorecard notation (ring = birdie, box = bogey). */
+:root{
+  --bg:#EEF3F0; --card:#FFFFFF; --ink:#11261D; --mut:#5A6E65; --line:#D3DED8;
+  --acc:#B4175A; --accink:#FFFFFF; --ta:#B56A00; --tb:#1B68AD; --good:#17804E;
+  --head:#11261D; --headink:#F1F7F3; --soft:#E3EBE6;
+  --disp:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0D1512; --card:#16211C; --ink:#E6EFEA; --mut:#90A49B; --line:#293831;
+  --acc:#F2649D; --accink:#22060F; --ta:#F0A93B; --tb:#66B1EE; --good:#4CC58A;
+  --head:#16211C; --headink:#E6EFEA; --soft:#1E2B25; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0D1512; --card:#16211C; --ink:#E6EFEA; --mut:#90A49B; --line:#293831;
+  --acc:#F2649D; --accink:#22060F; --ta:#F0A93B; --tb:#66B1EE; --good:#4CC58A;
+  --head:#16211C; --headink:#E6EFEA; --soft:#1E2B25; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.45 var(--body);font-variant-numeric:tabular-nums;padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top{background:var(--head);color:var(--headink);margin-top:calc(-1 * env(safe-area-inset-top,0px));padding-top:calc(env(safe-area-inset-top,0px) + 14px);padding-bottom:14px}
+.top h1{font:700 26px/1 var(--disp);letter-spacing:.02em;text-transform:uppercase;margin:0}
+.top p{margin:4px 0 0;font-size:13px;opacity:.75}
+main{display:flex;flex-direction:column;gap:14px;padding-block:14px}
+h2{font:600 20px/1.1 var(--disp);letter-spacing:.03em;text-transform:uppercase;margin:0;text-wrap:balance}
+h3{font:600 13px/1.2 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.mut{color:var(--mut);font-size:13px}
+.note{background:var(--soft);border-radius:8px;padding:10px 12px;font-size:13.5px}
+.note.warn{border-left:3px solid var(--acc)}
+.pill{font:600 11px/1 var(--body);letter-spacing:.06em;text-transform:uppercase;padding:5px 8px;border-radius:99px;background:var(--soft);color:var(--mut);white-space:nowrap}
+.pill.live{background:var(--acc);color:var(--accink)}
+.pill.done{background:var(--good);color:var(--card)}
+.tag{display:inline-block;font:700 11px/1 var(--body);padding:3px 5px;border-radius:4px;color:var(--card);vertical-align:1px}
+.tag.A{background:var(--ta)} .tag.B{background:var(--tb)}
+
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.btn{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-weight:600;min-height:44px}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--accink)}
+.btn.sm{min-height:36px;padding:6px 10px;font-size:13px}
+.seg{display:inline-flex;background:var(--soft);border-radius:8px;padding:3px;gap:2px;max-width:100%;flex-wrap:wrap}
+.seg button{border:0;background:transparent;border-radius:6px;padding:7px 11px;font-weight:600;font-size:13.5px;min-height:34px;color:var(--mut)}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+.seg.t button.A[aria-pressed="true"]{background:var(--ta);color:var(--card);box-shadow:none}
+.seg.t button.B[aria-pressed="true"]{background:var(--tb);color:var(--card);box-shadow:none}
+select,input{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:40px;max-width:100%;min-width:0}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--mut);min-width:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+
+table{border-collapse:collapse;width:100%}
+th,td{padding:8px 6px;text-align:right;border-bottom:1px solid var(--line)}
+th{font:600 11px/1.2 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+th:first-child,td:first-child{text-align:left}
+tr:last-child td{border-bottom:0}
+td.rk{width:22px;color:var(--mut)}
+td.big{font:700 22px/1 var(--disp)}
+td.nm{text-align:left;font-weight:600;overflow-wrap:anywhere}
+.scroll{overflow-x:auto}
+.sum td{font-weight:600;background:var(--soft)}
+.me td.nm::after{content:" (deg)";font-weight:400;color:var(--mut);font-size:12px}
+
+.match{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.side{border-radius:8px;padding:10px 12px;background:var(--soft);border-top:3px solid var(--line);min-width:0}
+.side.A{border-top-color:var(--ta)} .side.B{border-top-color:var(--tb)}
+.side b{font:700 28px/1 var(--disp);display:block}
+.side span{font-size:12.5px;color:var(--mut);overflow-wrap:anywhere}
+
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.chips button{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 6px;text-align:left;min-width:0}
+.chips button b{display:block;font:600 17px/1.1 var(--disp);text-transform:uppercase;letter-spacing:.03em}
+.chips button span{font-size:12px;color:var(--mut)}
+.chips button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 -3px 0 var(--acc)}
+.holebar{display:grid;grid-template-columns:52px 1fr 52px;align-items:center;gap:8px}
+.holebar .mid{text-align:center}
+.holebar .mid b{font:700 34px/1 var(--disp);text-transform:uppercase;letter-spacing:.02em;display:block}
+.holebar .btn{font-size:22px;padding:0;height:52px}
+.strip{display:grid;grid-template-columns:repeat(9,1fr);gap:4px}
+.strip button{border:1px solid var(--line);background:var(--card);border-radius:6px;padding:0;height:32px;font-weight:600;font-size:13px;color:var(--mut)}
+.strip button.f{background:var(--soft);color:var(--ink)}
+.strip button[aria-current="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0;padding-bottom:0}
+.who{min-width:0;flex:1}
+.who b{font-weight:600;overflow-wrap:anywhere}
+.who small{display:block;color:var(--mut);font-size:12.5px}
+.step{display:flex;align-items:center;gap:6px;flex:none}
+.step button{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--soft);font-size:24px;line-height:1;padding:0}
+.step button:disabled{opacity:.4;cursor:default}
+.sc{width:44px;height:44px;display:grid;place-items:center;font:700 26px/1 var(--disp);border:2px solid transparent}
+.sc.e{color:var(--mut)}
+.sc.bi,.sc.ea{border-color:var(--acc);border-radius:50%;color:var(--acc)}
+.sc.ea{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--acc)}
+.sc.bo,.sc.db{border-color:var(--mut)}
+.sc.db{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--mut)}
+td .m{display:inline-grid;place-items:center;min-width:22px;height:22px;border:1.5px solid transparent;font-weight:600}
+td .m.bi,td .m.ea{border-color:var(--acc);border-radius:50%;color:var(--acc)}
+td .m.bo,td .m.db{border-color:var(--mut)}
+.as{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.as:last-child{border-bottom:0}
+.as div{min-width:0;overflow-wrap:anywhere}
+.pl{display:grid;grid-template-columns:1fr 84px auto;gap:8px;align-items:end}
+details summary{cursor:pointer;font-weight:600;padding:6px 0}
+
+.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px));z-index:5}
+.tabs div{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tabs a{display:block;text-align:center;padding:14px 4px 12px;text-decoration:none;color:var(--mut);font:600 15px/1 var(--disp);letter-spacing:.06em;text-transform:uppercase;border-top:3px solid transparent;margin-top:-1px}
+.tabs a[aria-current="page"]{color:var(--ink);border-top-color:var(--acc)}
+@media (max-width:380px){ .grid3{grid-template-columns:1fr 1fr} .step button{width:42px;height:42px} }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <h1>La Cala 2027</h1>
+  <p>Mijas, Costa del Sol · 5.–7. februar · gul tee</p>
+</div></header>
+<main class="wrap" id="view"></main>
+<nav class="tabs" aria-label="Visninger"><div>
+  <a href="#tavle" data-tab="tavle">Tavle</a>
+  <a href="#score" data-tab="score">Score</a>
+  <a href="#runder" data-tab="runder">Runder</a>
+  <a href="#oppsett" data-tab="oppsett">Oppsett</a>
+</div></nav>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+<script>
+/* ---------- Banedata, gul tee (meter). Par og hullindeks fra banens scorekort. ---------- */
+const COURSES={
+  r1:{name:'Europa',day:'fre 5. feb',date:'2027-02-05',tee:'14:00 og 14:10',cr:69.5,slope:132,
+    par:[4,4,3,4,4,4,4,5,3,3,5,4,4,3,5,3,5,4],
+    si:[18,8,14,2,6,12,4,10,16,17,1,13,9,7,5,15,3,11],
+    len:[289,334,152,362,311,338,356,475,155,113,504,316,343,217,481,142,472,345]},
+  r2:{name:'America',day:'lør 6. feb',date:'2027-02-06',tee:'10:20 og 10:30',cr:70.6,slope:134,
+    par:[5,4,4,3,4,5,4,3,5,4,3,4,4,3,5,3,4,5],
+    si:[10,14,16,6,12,2,4,18,8,7,13,5,3,15,1,17,9,11],
+    len:[438,308,275,153,278,437,396,97,458,337,209,346,341,126,479,105,326,491]},
+  r3:{name:'Asia',day:'søn 7. feb',date:'2027-02-07',tee:'10:30 og 10:40',cr:69.1,slope:139,
+    par:[4,4,3,4,5,4,3,4,5,5,3,4,4,4,4,5,3,4],
+    si:[12,16,18,2,10,4,14,8,6,1,13,3,5,17,11,7,15,9],
+    len:[286,252,119,279,461,325,125,338,424,460,164,314,368,281,333,435,101,336]}
+};
+const RIDS=['r1','r2','r3'];
+const GAMES={stroke:'Slagspill',scramble:'Scramble',shamble:'Shamble'};
+const DEF_PTS={win:3,tie:1,loss:0,place:[6,5,4,3,2,1],ld:1,ctp:1,birdie:0};
+
+/* ---------- State ---------- */
+const ls={get(k){try{return localStorage.getItem('lacala.'+k)}catch(e){return null}},set(k,v){try{localStorage.setItem('lacala.'+k,v)}catch(e){}}};
+const S={cfg:null,rounds:{},scores:{},me:ls.get('me')||'',view:'tavle',rid:'r1',hole:1,sort:'pts',open:{},cfgSeen:false,nodb:false,ro:false,slow:false,err:'',confirmDel:''};
+let db=null;
+(function(){const t=new Date().toISOString().slice(0,10);RIDS.forEach(r=>{if(COURSES[r].date<=t)S.rid=r})})();
+
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clone=o=>JSON.parse(JSON.stringify(o??{}));
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const first=n=>String(n||'').trim().split(/\s+/)[0]||'?';
+const fmtPar=n=>{const r=Math.round(n*10)/10;return r===0?'E':(r>0?'+':'−')+Math.abs(r)};
+const fmtPts=n=>Number.isInteger(n)?String(n):n.toFixed(1).replace('.',',');
+
+const DEF_PLAYERS=[['p1','Kasper Elgstøen'],['p2','Håkon Bergesen'],['p3','Karl Petter Gjertsen'],['p4','Robin Andersen'],['p5','Tord Jerijærvi'],['p6','Tobias Skodbo']].map(([id,name])=>({id,name,hcp:null}));
+function cfg(){const c=S.cfg||{players:DEF_PLAYERS};const p={...DEF_PTS,...(c.pts||{})};if(!Array.isArray(p.place))p.place=DEF_PTS.place;return{players:Array.isArray(c.players)?c.players:[],pts:p,stake:+c.stake||0}}
+function rnd(rid){const C=COURSES[rid];return{game:'stroke',teamA:[],flight1:[],count:2,cr:C.cr,slope:C.slope,ldHole:0,ldWin:'',ctpHole:0,ctpWin:'',done:false,...(S.rounds[rid]||{})}}
+function holes(rid,key){const h=(S.scores[rid+'_'+key]||{}).h;const out=[];for(let i=0;i<18;i++)out.push(h&&h[i]>0?h[i]:null);return out}
+const indiv=g=>g!=='scramble';
+const pname=id=>{const p=cfg().players.find(p=>p.id===id);return p?first(p.name):''};
+
+/* ---------- Handicap og resultat ---------- */
+function chOf(p,rid){const R=rnd(rid),par=sum(COURSES[rid].par);if(p.hcp==null||p.hcp==='')return 0;return Math.round(p.hcp*R.slope/113+(R.cr-par))}
+function strokesOn(ch,si){if(ch>=0)return Math.floor(ch/18)+(si<=ch%18?1:0);return si>18+ch?-1:0}
+function pstat(rid,p){
+  const C=COURSES[rid],h=holes(rid,p.id),ch=chOf(p,rid);let n=0,g=0,par=0,st=0,bird=0;const netH=[];
+  for(let i=0;i<18;i++){const v=h[i];if(v==null)continue;const s=strokesOn(ch,C.si[i]);n++;g+=v;par+=C.par[i];st+=s;netH[i]=v-s;if(v<C.par[i])bird++}
+  return{n,ch,bird,netH,h,strokes:g,gross:g-par,net:g-par-st}
+}
+function members(rid,t){const R=rnd(rid),ps=cfg().players;if(!R.teamA.length)return[];return ps.filter(p=>R.teamA.includes(p.id)===(t==='A'))}
+function scrHcp(rid,m){const chs=m.map(p=>chOf(p,rid)).sort((a,b)=>a-b),w=[.2,.15,.1];return Math.round(sum(chs.map((c,i)=>c*(w[i]||0))))}
+function tstat(rid,t){
+  const C=COURSES[rid],R=rnd(rid),m=members(rid,t);let n=0,net=0,gross=0,hcp=0;
+  if(!m.length)return{m,n,net,gross,hcp};
+  if(R.game==='scramble'){
+    const h=holes(rid,'t'+t);hcp=scrHcp(rid,m);let g=0,par=0;
+    h.forEach((v,i)=>{if(v!=null){n++;g+=v;par+=C.par[i]}});gross=g-par;net=gross-hcp*n/18;
+  }else if(R.game==='shamble'){
+    const st=m.map(p=>pstat(rid,p)),k=Math.min(R.count||2,m.length);
+    for(let i=0;i<18;i++){
+      const nets=st.map(s=>s.netH[i]).filter(v=>v!=null).sort((a,b)=>a-b);
+      const gr=st.map(s=>s.h[i]).filter(v=>v!=null).sort((a,b)=>a-b);
+      if(nets.length>=k){n++;net+=sum(nets.slice(0,k))-C.par[i]*k;gross+=sum(gr.slice(0,k))-C.par[i]*k}
+    }
+  }else{
+    const st=m.map(p=>pstat(rid,p));n=Math.min(...st.map(s=>s.n));net=sum(st.map(s=>s.net));gross=sum(st.map(s=>s.gross));
+    if(!st.some(s=>s.n>0))n=0;else if(n===0)n=Math.max(...st.map(s=>s.n));
+  }
+  return{m,n,net,gross,hcp}
+}
+function roundPoints(rid){
+  const R=rnd(rid);if(!R.done)return null;
+  const c=cfg(),P=c.pts,out={};c.players.forEach(p=>out[p.id]={team:0,place:0,bonus:0,total:0});
+  const A=tstat(rid,'A'),B=tstat(rid,'B');
+  if(A.n&&B.n){const d=A.net-B.net,tie=Math.abs(d)<1e-9;
+    A.m.forEach(p=>out[p.id].team=tie?P.tie:d<0?P.win:P.loss);
+    B.m.forEach(p=>out[p.id].team=tie?P.tie:d>0?P.win:P.loss)}
+  if(R.game==='stroke'){
+    const L=c.players.map(p=>({id:p.id,net:pstat(rid,p).net,n:pstat(rid,p).n})).filter(x=>x.n>0).sort((a,b)=>a.net-b.net);
+    let i=0;while(i<L.length){let j=i;while(j+1<L.length&&L[j+1].net===L[i].net)j++;
+      let tot=0;for(let k=i;k<=j;k++)tot+=+P.place[k]||0;
+      for(let k=i;k<=j;k++)out[L[k].id].place=tot/(j-i+1);i=j+1}
+  }
+  if(R.ldHole&&out[R.ldWin])out[R.ldWin].bonus+=+P.ld||0;
+  if(R.ctpHole&&out[R.ctpWin])out[R.ctpWin].bonus+=+P.ctp||0;
+  if(indiv(R.game)&&+P.birdie)c.players.forEach(p=>out[p.id].bonus+=pstat(rid,p).bird*P.birdie);
+  Object.values(out).forEach(o=>o.total=Math.round((o.team+o.place+o.bonus)*100)/100);
+  return out
+}
+function overall(){
+  return cfg().players.map(p=>{
+    const o={p,pts:0,gross:0,net:0,n:0,bird:0};
+    RIDS.forEach(rid=>{const rp=roundPoints(rid);if(rp&&rp[p.id])o.pts+=rp[p.id].total;
+      if(indiv(rnd(rid).game)){const s=pstat(rid,p);o.gross+=s.gross;o.net+=s.net;o.n+=s.n;o.bird+=s.bird}});
+    return o})
+}
+function status(rid){const R=rnd(rid);if(R.done)return['done','Ferdig'];
+  const any=Object.keys(S.scores).some(k=>k.startsWith(rid+'_')&&((S.scores[k]||{}).h||[]).some(v=>v>0));
+  return any?['live','Pågår']:['','Ikke startet']}
+
+/* ---------- Lagring ---------- */
+const W={};
+const pending=path=>!!(W[path]&&(W[path].data!=null||W[path].busy));
+function save(path,data,delay){const w=W[path]||(W[path]={});w.data=data;clearTimeout(w.timer);w.timer=setTimeout(()=>flush(path),delay||0)}
+async function flush(path){
+  const w=W[path];if(!db||!w||w.busy||w.data==null)return;
+  const d=w.data;w.data=null;w.busy=true;
+  try{const p=db.doc(path).set(d);await Promise.race([p,new Promise(r=>setTimeout(r,1500))]);p.catch(e=>{if(e&&e.code==='permission-denied'){S.ro=true;render(true)}});S.err=''}
+  catch(e){if(e&&e.code==='permission-denied')S.ro=true;else S.err='Lagringen feilet. Sjekk nettet og prøv igjen.';render(true)}
+  w.busy=false;if(w.data!=null)flush(path)
+}
+function updCfg(fn){const c=clone(S.cfg||{players:DEF_PLAYERS});const full={players:c.players||[],pts:{...DEF_PTS,...(c.pts||{})},stake:c.stake||0};fn(full);S.cfg=full;save('trip/config',full)}
+function updRound(rid,fn){const r=clone(S.rounds[rid]);fn(r);S.rounds[rid]=r;save('rounds/'+rid,r)}
+function bump(key,d){
+  const rid=S.rid,C=COURSES[rid],i=S.hole-1,h=holes(rid,key);let v=h[i];
+  if(v==null)v=d>0?C.par[i]:C.par[i]-1;else v+=d;
+  h[i]=v<1?null:Math.min(v,15);S.scores[rid+'_'+key]={h};save('scores/'+rid+'_'+key,{h},500);render(true)
+}
+
+/* ---------- Visninger ---------- */
+function banners(){
+  let s='';
+  if(S.nodb)s+='<div class="note warn">'+(S.nodb===2?'Firebase er ikke satt opp ennå. Fyll inn config.js som beskrevet i README.':'Fikk ikke lastet lagringen. Sjekk nettet og last siden på nytt.')+'</div>';
+  else if(S.ro)s+='<div class="note warn">Databasen nekter lagring. Sjekk sikkerhetsreglene i Firebase (se README).</div>';
+  else if(S.slow)s+='<div class="note">Ingen kontakt med nettet. Score lagres på telefonen og sendes når dekningen er tilbake.</div>';
+  if(S.err)s+='<div class="note warn">'+esc(S.err)+'</div>';
+  return s
+}
+function noPlayers(){
+  if(!S.cfgSeen&&!S.nodb)return'<div class="card"><p class="mut" style="margin:0">Henter spillere og score …</p></div>';
+  return'<div class="card"><h2>Ingen spillere ennå</h2><p class="mut" style="margin:0">Legg inn spillerne under Oppsett, så dukker tavla og scoreføringen opp her.</p><a class="btn pri" href="#oppsett" style="text-align:center;text-decoration:none">Gå til Oppsett</a></div>'
+}
+function seg(act,opts,cur,extra,cls){return'<div class="seg '+(cls||'')+'">'+opts.map(o=>'<button class="'+esc(o[0])+'" data-act="'+act+'" data-v="'+esc(o[0])+'" '+(extra||'')+' aria-pressed="'+(String(cur)===String(o[0]))+'">'+esc(o[1])+'</button>').join('')+'</div>'}
+function sel(chg,opts,cur,id){return'<select id="'+id+'" data-chg="'+chg+'">'+opts.map(o=>'<option value="'+esc(o[0])+'"'+(String(cur)===String(o[0])?' selected':'')+'>'+esc(o[1])+'</option>').join('')+'</select>'}
+function mark(v,par){if(v==null)return'e';const d=v-par;return d<=-2?'ea':d===-1?'bi':d===1?'bo':d>=2?'db':''}
+function matchHtml(rid){
+  const R=rnd(rid),A=tstat(rid,'A'),B=tstat(rid,'B');
+  if(!A.m.length)return'<p class="mut" style="margin:0">Lagene er ikke satt for denne runden. Trekk lag under Runder.</p>';
+  const side=(t,T)=>'<div class="side '+t+'"><b>'+(T.n?fmtPar(T.net):'–')+'</b><span>Lag '+t+': '+esc(T.m.map(p=>first(p.name)).join(', '))+(T.n?' · etter '+T.n:'')+(R.game==='scramble'?' · lag-hcp '+T.hcp:'')+'</span></div>';
+  return'<div class="match">'+side('A',A)+side('B',B)+'</div>'
+}
+function vTavle(){
+  const c=cfg();if(!c.players.length)return noPlayers();
+  const o=overall(),key=S.sort;
+  o.sort((a,b)=>key==='pts'?(b.pts-a.pts||a.net-b.net):((b.n>0)-(a.n>0)||a[key]-b[key]));
+  let s='<section class="card"><div class="hd"><h2>Sammenlagt</h2>'+seg('sort',[['pts','Poeng'],['gross','Brutto'],['net','Netto']],key)+'</div><div class="scroll"><table><thead><tr><th></th><th>Spiller</th><th>Poeng</th><th>Brutto</th><th>Netto</th></tr></thead><tbody>';
+  o.forEach((x,i)=>{s+='<tr class="'+(x.p.id===S.me?'me':'')+'"><td class="rk">'+(i+1)+'</td><td class="nm">'+esc(first(x.p.name))+'</td><td class="big">'+fmtPts(x.pts)+'</td><td>'+(x.n?fmtPar(x.gross):'–')+'</td><td>'+(x.n?fmtPar(x.net):'–')+'</td></tr>'});
+  s+='</tbody></table></div><p class="mut" style="margin:0">Poeng deles ut når en runde avsluttes. Brutto og netto er slag mot par i runder med egen ball (slagspill og shamble).</p>';
+  if(c.stake>0){const pot=c.stake*c.players.length;s+='<div class="note">Pott: <b>'+pot+' kr</b>. Forslag: '+Math.round(pot*.6)+' / '+Math.round(pot*.3)+' / '+Math.round(pot*.1)+' kr til topp tre på poeng.</div>'}
+  s+='</section>';
+  RIDS.forEach((rid,ix)=>{
+    const C=COURSES[rid],R=rnd(rid),st=status(rid),rp=roundPoints(rid);
+    s+='<section class="card"><div class="hd"><div><h3>Runde '+(ix+1)+' · '+C.day+'</h3><h2>'+C.name+' · '+GAMES[R.game]+'</h2></div><span class="pill '+st[0]+'">'+st[1]+'</span></div>'+matchHtml(rid);
+    if(st[0]){
+      s+='<div class="scroll"><table><thead><tr><th>Spiller</th>'+(indiv(R.game)?'<th>Hull</th><th>Brutto</th><th>Netto</th>':'')+(rp?'<th>Poeng</th>':'')+'</tr></thead><tbody>';
+      const L=c.players.map(p=>({p,s:pstat(rid,p)}));if(indiv(R.game))L.sort((a,b)=>(b.s.n>0)-(a.s.n>0)||a.s.net-b.s.net);else if(rp)L.sort((a,b)=>rp[b.p.id].total-rp[a.p.id].total);
+      L.forEach(x=>{const t=R.teamA.length?(R.teamA.includes(x.p.id)?'A':'B'):'';
+        s+='<tr><td class="nm">'+esc(first(x.p.name))+(t?' <span class="tag '+t+'">'+t+'</span>':'')+'</td>'+(indiv(R.game)?'<td>'+(x.s.n||'–')+'</td><td>'+(x.s.n?fmtPar(x.s.gross):'–')+'</td><td>'+(x.s.n?fmtPar(x.s.net):'–')+'</td>':'')+(rp?'<td><b>'+fmtPts(rp[x.p.id].total)+'</b></td>':'')+'</tr>'});
+      s+='</tbody></table></div>';
+    }
+    const ex=[];if(R.ldHole)ex.push('Longest drive hull '+R.ldHole+': '+(esc(pname(R.ldWin))||'ikke avgjort'));if(R.ctpHole)ex.push('Closest to pin hull '+R.ctpHole+': '+(esc(pname(R.ctpWin))||'ikke avgjort'));
+    if(indiv(R.game)){const b=c.players.map(p=>[first(p.name),pstat(rid,p).bird]).filter(x=>x[1]);if(b.length)ex.push('Birdies: '+b.map(x=>esc(x[0])+' '+x[1]).join(', '))}
+    if(ex.length)s+='<p class="mut" style="margin:0">'+ex.join(' · ')+'</p>';
+    s+='</section>'
+  });
+  return s
+}
+function vScore(){
+  const c=cfg();if(!c.players.length)return noPlayers();
+  const rid=S.rid,C=COURSES[rid],R=rnd(rid),i=S.hole-1,par=C.par[i],lock=R.done?' disabled':'';
+  let s='<div class="chips">'+RIDS.map((r,ix)=>'<button data-act="rid" data-v="'+r+'" aria-pressed="'+(r===rid)+'"><b>'+COURSES[r].name+'</b><span>R'+(ix+1)+' · '+GAMES[rnd(r).game]+'</span></button>').join('')+'</div>';
+  if(R.done)s+='<div class="note">Runden er avsluttet. Gjenåpne den under Runder for å endre score.</div>';
+  const scr=R.game==='scramble',keys=scr?['tA','tB']:c.players.map(p=>p.id);
+  const filled=j=>keys.every(k=>holes(rid,k)[j]!=null);
+  s+='<section class="card"><div class="holebar"><button class="btn" data-act="hole" data-v="'+(S.hole-1)+'" aria-label="Forrige hull"'+(S.hole<2?' disabled':'')+'>‹</button><div class="mid"><b>Hull '+S.hole+'</b><span class="mut">Par '+par+' · indeks '+C.si[i]+' · '+C.len[i]+' m</span></div><button class="btn" data-act="hole" data-v="'+(S.hole+1)+'" aria-label="Neste hull"'+(S.hole>17?' disabled':'')+'>›</button></div>';
+  s+='<div class="strip">'+C.par.map((_,j)=>'<button data-act="hole" data-v="'+(j+1)+'" class="'+(filled(j)?'f':'')+'" aria-current="'+(j===i)+'" aria-label="Hull '+(j+1)+'">'+(j+1)+'</button>').join('')+'</div></section>';
+  const row=(key,name,sub,tag)=>{const v=holes(rid,key)[i];
+    return'<div class="row"><div class="who"><b>'+esc(name)+'</b>'+(tag?' <span class="tag '+tag+'">'+tag+'</span>':'')+'<small>'+sub+'</small></div><div class="step"><button data-act="dec" data-v="'+key+'" aria-label="Ett slag færre for '+esc(name)+'"'+lock+'>−</button><span class="sc '+mark(v,par)+'">'+(v==null?'–':v)+'</span><button data-act="inc" data-v="'+key+'" aria-label="Ett slag mer for '+esc(name)+'"'+lock+'>+</button></div></div>'};
+  if(scr){
+    s+='<section class="card"><h3>Lagscore (scramble)</h3><div>';
+    if(!R.teamA.length)s+='<p class="mut" style="margin:0">Trekk lag under Runder før dere fører scramble.</p>';
+    else['A','B'].forEach(t=>{const T=tstat(rid,t);s+=row('t'+t,'Lag '+t,esc(T.m.map(p=>first(p.name)).join(', '))+' · '+(T.n?fmtPar(T.gross)+' brutto etter '+T.n:'ingen hull ført'),t)});
+    s+='</div></section>'
+  }else{
+    const f1=c.players.filter(p=>R.flight1.includes(p.id)),f2=c.players.filter(p=>!R.flight1.includes(p.id));
+    let groups=R.flight1.length?[['Flight 1',f1],['Flight 2',f2]]:[['Alle spillere',c.players]];
+    if(groups.length>1&&f2.some(p=>p.id===S.me))groups.reverse();
+    groups.forEach(g=>{if(!g[1].length)return;s+='<section class="card"><h3>'+g[0]+'</h3><div>';
+      g[1].forEach(p=>{const st=pstat(rid,p),x=strokesOn(st.ch,C.si[i]),t=R.teamA.length?(R.teamA.includes(p.id)?'A':'B'):'';
+        s+=row(p.id,first(p.name)+(p.id===S.me?' (deg)':''),(st.n?fmtPar(st.gross)+' brutto · '+fmtPar(st.net)+' netto':'Ingen hull ført')+(x?' · '+(x>0?'får '+x:'gir '+(-x))+' slag her':''),t)});
+      s+='</div></section>'})
+  }
+  const opts=[['','Ikke avgjort']].concat(c.players.map(p=>[p.id,first(p.name)]));
+  if(R.ldHole===S.hole)s+='<section class="card"><h3>Longest drive på dette hullet</h3>'+sel('ldWin:'+rid,opts,R.ldWin,'s-ld')+'</section>';
+  if(R.ctpHole===S.hole)s+='<section class="card"><h3>Closest to pin på dette hullet</h3>'+sel('ctpWin:'+rid,opts,R.ctpWin,'s-ctp')+'</section>';
+  return s
+}
+function cardTable(rid){
+  const C=COURSES[rid],R=rnd(rid),c=cfg(),scr=R.game==='scramble';
+  const cols=scr?[['tA','Lag A'],['tB','Lag B']]:c.players.map(p=>[p.id,first(p.name).slice(0,5)]);
+  const hs=cols.map(k=>holes(rid,k[0]));
+  let s='<div class="scroll"><table><thead><tr><th>Hull</th><th>Par</th><th>Idx</th>'+cols.map(k=>'<th>'+esc(k[1])+'</th>').join('')+'</tr></thead><tbody>';
+  const tot=(a,b)=>'<tr class="sum"><td>'+(a===0&&b===9?'Ut':a===9?'Inn':'Tot')+'</td><td>'+sum(C.par.slice(a,b))+'</td><td></td>'+hs.map(h=>{const v=h.slice(a,b);return'<td>'+(v.some(x=>x!=null)?sum(v.map(x=>x||0)):'–')+'</td>'}).join('')+'</tr>';
+  for(let i=0;i<18;i++){s+='<tr><td>'+(i+1)+'</td><td>'+C.par[i]+'</td><td>'+C.si[i]+'</td>'+hs.map(h=>'<td><span class="m '+mark(h[i],C.par[i])+'">'+(h[i]==null?'·':h[i])+'</span></td>').join('')+'</tr>';if(i===8)s+=tot(0,9);if(i===17)s+=tot(9,18)+tot(0,18)}
+  return s+'</tbody></table></div>'
+}
+function vRunder(){
+  const c=cfg();if(!c.players.length)return noPlayers();
+  let s='';
+  RIDS.forEach((rid,ix)=>{
+    const C=COURSES[rid],R=rnd(rid),st=status(rid),x='data-r="'+rid+'"';
+    s+='<section class="card"><div class="hd"><div><h3>Runde '+(ix+1)+' · '+C.day+' · start '+C.tee+'</h3><h2>Campo '+C.name+'</h2></div><span class="pill '+st[0]+'">'+st[1]+'</span></div>';
+    s+='<p class="mut" style="margin:0">Par '+sum(C.par)+' · '+sum(C.len)+' m · CR '+String(R.cr).replace('.',',')+' · slope '+R.slope+'</p>';
+    s+='<div><h3 style="margin-bottom:6px">Spillform</h3>'+seg('game',[['stroke','Slagspill'],['scramble','Scramble'],['shamble','Shamble']],R.game,x)+'</div>';
+    if(R.game==='shamble')s+='<div><h3 style="margin-bottom:6px">Tellende baller per hull</h3>'+seg('count',[[1,'1 beste'],[2,'2 beste']],R.count,x)+'</div>';
+    if(R.game==='scramble'&&R.teamA.length)s+='<p class="mut" style="margin:0">Lag-hcp (20/15/10 % av spillehcp): Lag A '+tstat(rid,'A').hcp+', Lag B '+tstat(rid,'B').hcp+'.</p>';
+    s+='<div><div class="hd" style="margin-bottom:4px"><h3>Lag og flight</h3><button class="btn sm" data-act="draw" '+x+'>Trekk lag og flighter</button></div>';
+    c.players.forEach(p=>{s+='<div class="as"><div><b>'+esc(first(p.name))+'</b> <span class="mut">spillehcp '+chOf(p,rid)+'</span></div>'+seg('team',[['A','A'],['B','B']],R.teamA.length?(R.teamA.includes(p.id)?'A':'B'):'',x+' data-p="'+p.id+'"','t')+seg('flight',[[1,'F1'],[2,'F2']],R.flight1.length?(R.flight1.includes(p.id)?1:2):'',x+' data-p="'+p.id+'"')+'</div>'});
+    s+='</div>';
+    const hOpt=[[0,'Ikke i bruk']].concat(C.par.map((p,j)=>[j+1,'Hull '+(j+1)+' (par '+p+')'])),wOpt=[['','Ikke avgjort']].concat(c.players.map(p=>[p.id,first(p.name)]));
+    s+='<div class="grid2"><label class="f">Longest drive'+sel('ldHole:'+rid,hOpt.filter(o=>o[0]===0||C.par[o[0]-1]>3),R.ldHole,'ldh-'+rid)+'</label><label class="f">Vinner'+sel('ldWin:'+rid,wOpt,R.ldWin,'ldw-'+rid)+'</label><label class="f">Closest to pin'+sel('ctpHole:'+rid,hOpt.filter(o=>o[0]===0||C.par[o[0]-1]===3),R.ctpHole,'cth-'+rid)+'</label><label class="f">Vinner'+sel('ctpWin:'+rid,wOpt,R.ctpWin,'ctw-'+rid)+'</label></div>';
+    s+='<details data-d="'+rid+'"'+(S.open[rid]?' open':'')+'><summary>Scorekort</summary>'+cardTable(rid)+'</details>';
+    s+='<button class="btn '+(R.done?'':'pri')+'" data-act="done" '+x+'>'+(R.done?'Gjenåpne runden':'Avslutt runden og del ut poeng')+'</button></section>'
+  });
+  return s
+}
+function vOppsett(){
+  const c=cfg(),P=c.pts;
+  let s='<section class="card"><h2>Hvem er du?</h2><p class="mut" style="margin:0">Valget lagres bare på denne telefonen og legger din flight øverst når du fører score.</p>'+sel('me',[['','Ikke valgt']].concat(c.players.map(p=>[p.id,p.name])),S.me,'me')+'</section>';
+  s+='<section class="card"><h2>Spillere og handicap</h2>';
+  if(!c.players.length)s+='<p class="mut" style="margin:0">'+(S.cfgSeen||S.nodb?'Ingen spillere lagt inn ennå.':'Henter spillere …')+'</p>';
+  c.players.forEach(p=>{s+='<div class="pl"><label class="f">Navn<input id="pn-'+p.id+'" data-chg="pname:'+p.id+'" value="'+esc(p.name)+'" autocomplete="off"></label><label class="f">Hcp<input id="ph-'+p.id+'" data-chg="phcp:'+p.id+'" inputmode="decimal" placeholder="f.eks. 14,2" value="'+(p.hcp==null?'':String(p.hcp).replace('.',','))+'"></label><button class="btn sm" data-act="del" data-v="'+p.id+'">'+(S.confirmDel===p.id?'Bekreft':'Fjern')+'</button></div>'});
+  s+='<button class="btn" data-act="add">Legg til spiller</button><p class="mut" style="margin:0">Spillehcp per bane = hcp × slope / 113 + (CR − par), avrundet. Slagene fordeles etter hullindeks.</p></section>';
+  const num=(k,l)=>'<label class="f">'+l+'<input id="pt-'+k+'" data-chg="pt:'+k+'" inputmode="decimal" value="'+String(P[k]).replace('.',',')+'"></label>';
+  s+='<section class="card"><h2>Poengsystem</h2><p class="mut" style="margin:0">Poengene deles ut per spiller når runden avsluttes, og legges sammen over de tre rundene.</p><h3>Lagkamp (alle spillformer)</h3><div class="grid3">'+num('win','Seier')+num('tie','Uavgjort')+num('loss','Tap')+'</div><h3>Plassering netto (kun slagspill)</h3><label class="f">Poeng for 1.–6. plass, delt ved likt<input id="pt-place" data-chg="place" inputmode="text" value="'+esc(P.place.join(', '))+'"></label><h3>Bonus</h3><div class="grid3">'+num('ld','Longest drive')+num('ctp','Closest to pin')+num('birdie','Per birdie')+'</div><label class="f">Innsats per spiller (kr)<input id="stake" data-chg="stake" inputmode="numeric" value="'+c.stake+'"></label></section>';
+  s+='<section class="card"><h2>Baner, gul tee</h2><p class="mut" style="margin:0">Sjekk CR og slope mot slopetabellen i klubbhuset og rett her om de avviker.</p>';
+  RIDS.forEach(rid=>{const R=rnd(rid);s+='<div class="grid3"><div style="align-self:end;padding-bottom:10px"><b>'+COURSES[rid].name+'</b></div><label class="f">CR<input id="cr-'+rid+'" data-chg="cr:'+rid+'" inputmode="decimal" value="'+String(R.cr).replace('.',',')+'"></label><label class="f">Slope<input id="sl-'+rid+'" data-chg="slope:'+rid+'" inputmode="numeric" value="'+R.slope+'"></label></div>'});
+  s+='</section><section class="card"><h2>Slik regnes spillene</h2><p class="mut" style="margin:0"><b>Slagspill:</b> alle spiller egen ball. Lagets resultat er summen av de tre nettoscorene.<br><b>Scramble:</b> én lagscore per hull, minus lag-hcp (20/15/10 % av spillehcp, lavest først).<br><b>Shamble:</b> beste utslag velges, deretter egen ball. De beste nettoballene per hull teller for laget.</p></section>';
+  return s
+}
+
+/* ---------- Tegning og hendelser ---------- */
+const view=document.getElementById('view');
+function render(force){
+  const a=document.activeElement;
+  if(!force&&a&&view.contains(a)&&(a.tagName==='INPUT'||a.tagName==='SELECT')){S.dirty=true;return}
+  S.dirty=false;
+  const fid=a&&a.id&&view.contains(a)?a.id:'';
+  view.innerHTML=banners()+({tavle:vTavle,score:vScore,runder:vRunder,oppsett:vOppsett}[S.view])();
+  document.querySelectorAll('.tabs a').forEach(t=>{if(t.dataset.tab===S.view)t.setAttribute('aria-current','page');else t.removeAttribute('aria-current')});
+  if(fid){const el=document.getElementById(fid);if(el&&el.tagName!=='INPUT')el.focus({preventScroll:true})}
+}
+function route(){const h=location.hash.slice(1);S.view=['tavle','score','runder','oppsett'].includes(h)?h:'tavle';S.confirmDel='';render(true);window.scrollTo(0,0)}
+window.addEventListener('hashchange',route);
+view.addEventListener('focusout',()=>setTimeout(()=>{if(S.dirty)render()},0));
+view.addEventListener('toggle',e=>{const d=e.target;if(d.dataset&&d.dataset.d)S.open[d.dataset.d]=d.open},true);
+view.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b||b.disabled)return;
+  const a=b.dataset.act,v=b.dataset.v,rid=b.dataset.r,pid=b.dataset.p,ids=cfg().players.map(p=>p.id);
+  if(a==='sort')S.sort=v;
+  else if(a==='rid')S.rid=v;
+  else if(a==='hole')S.hole=Math.max(1,Math.min(18,+v));
+  else if(a==='inc')return bump(v,1);
+  else if(a==='dec')return bump(v,-1);
+  else if(a==='game')updRound(rid,r=>r.game=v);
+  else if(a==='count')updRound(rid,r=>r.count=+v);
+  else if(a==='team')updRound(rid,r=>{const s=new Set((r.teamA&&r.teamA.length?r.teamA:[]).filter(x=>ids.includes(x)));v==='A'?s.add(pid):s.delete(pid);r.teamA=[...s]});
+  else if(a==='flight')updRound(rid,r=>{const s=new Set((r.flight1||[]).filter(x=>ids.includes(x)));v==='1'?s.add(pid):s.delete(pid);r.flight1=[...s]});
+  else if(a==='draw'){const sh=()=>{const x=ids.slice();for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]]}return x.slice(0,Math.ceil(x.length/2))};updRound(rid,r=>{r.teamA=sh();r.flight1=sh()})}
+  else if(a==='done')updRound(rid,r=>r.done=!r.done);
+  else if(a==='add')updCfg(c=>c.players.push({id:'p'+Date.now().toString(36),name:'Ny spiller',hcp:null}));
+  else if(a==='del'){if(S.confirmDel===v){updCfg(c=>c.players=c.players.filter(p=>p.id!==v));S.confirmDel=''}else S.confirmDel=v}
+  render(true)
+});
+view.addEventListener('change',e=>{
+  const el=e.target,k=el.dataset.chg;if(!k)return;
+  const [a,id]=k.split(':'),raw=el.value.trim(),n=parseFloat(raw.replace(',','.'));
+  if(a==='me'){S.me=raw;ls.set('me',raw)}
+  else if(a==='pname')updCfg(c=>{const p=c.players.find(p=>p.id===id);if(p&&raw)p.name=raw});
+  else if(a==='phcp')updCfg(c=>{const p=c.players.find(p=>p.id===id);if(p)p.hcp=isNaN(n)?null:n});
+  else if(a==='pt')updCfg(c=>c.pts[id]=isNaN(n)?0:n);
+  else if(a==='place')updCfg(c=>{const arr=raw.split(/[;,\s]+/).map(x=>parseFloat(x)).filter(x=>!isNaN(x));if(arr.length)c.pts.place=arr});
+  else if(a==='stake')updCfg(c=>c.stake=isNaN(n)?0:Math.max(0,n));
+  else if(a==='cr'){if(!isNaN(n))updRound(id,r=>r.cr=n)}
+  else if(a==='slope'){if(!isNaN(n))updRound(id,r=>r.slope=Math.round(n))}
+  else if(a==='ldHole'||a==='ctpHole')updRound(id,r=>r[a]=+raw||0);
+  else if(a==='ldWin'||a==='ctpWin')updRound(id,r=>r[a]=raw);
+  if(el.tagName==='SELECT')render(true);else S.dirty=true
+});
+
+/* ---------- Oppstart ---------- */
+async function boot(){
+  route();
+  const conf=window.FIREBASE_CONFIG;
+  if(!conf||!conf.apiKey||String(conf.apiKey).includes('FYLL')){S.nodb=2;S.cfgSeen=true;render();return}
+  if(!window.firebase){S.nodb=1;S.cfgSeen=true;render();return}
+  try{firebase.initializeApp(conf);db=firebase.firestore();try{await db.enablePersistence({synchronizeTabs:true})}catch(e){}}
+  catch(e){S.nodb=1;S.cfgSeen=true;render();return}
+  const slow=setTimeout(()=>{S.slow=true;render()},10000);
+  const ok=m=>{if(m&&!m.fromCache){clearTimeout(slow);if(S.slow){S.slow=false}}};
+  const fail=e=>{clearTimeout(slow);S.slow=false;S.cfgSeen=true;if(e&&e.code==='permission-denied')S.ro=true;else S.err='Mistet kontakten med lagringen. Last siden på nytt.';render()};
+  db.doc('trip/config').onSnapshot({includeMetadataChanges:true},s=>{ok(s.metadata);if(!pending('trip/config'))S.cfg=s.exists?s.data():null;S.cfgSeen=true;render()},fail);
+  db.collection('rounds').onSnapshot({includeMetadataChanges:true},q=>{ok(q.metadata);q.docs.forEach(d=>{if(RIDS.includes(d.id)&&!pending('rounds/'+d.id))S.rounds[d.id]=d.data()});render()},fail);
+  db.collection('scores').onSnapshot({includeMetadataChanges:true},q=>{ok(q.metadata);q.docs.forEach(d=>{if(!pending('scores/'+d.id))S.scores[d.id]=d.data()});render()},fail);
+  window.addEventListener('online',()=>{S.slow=false;render()});window.addEventListener('offline',()=>{S.slow=true;render()});
+}
+boot();
+</script>
+</body>
+</html>

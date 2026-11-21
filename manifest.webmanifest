@@ -1,0 +1,13 @@
+{
+  "name": "La Cala 2027",
+  "short_name": "La Cala",
+  "start_url": "./#tavle",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#11261D",
+  "theme_color": "#11261D",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
