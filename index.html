@@ -156,15 +156,15 @@ details summary{cursor:pointer;font-weight:600;padding:6px 0}
 <script>
 /* ---------- Banedata, gul tee (meter). Par og hullindeks fra banens scorekort. ---------- */
 const COURSES={
-  r1:{name:'Europa',day:'fre 5. feb',date:'2027-02-05',tee:'14:00 og 14:10',cr:69.5,slope:132,
+  r1:{ld:11,ctp:3,name:'Europa',day:'fre 5. feb',date:'2027-02-05',tee:'14:00 og 14:10',cr:69.5,slope:132,
     par:[4,4,3,4,4,4,4,5,3,3,5,4,4,3,5,3,5,4],
     si:[18,8,14,2,6,12,4,10,16,17,1,13,9,7,5,15,3,11],
     len:[289,334,152,362,311,338,356,475,155,113,504,316,343,217,481,142,472,345]},
-  r2:{name:'America',day:'lør 6. feb',date:'2027-02-06',tee:'10:20 og 10:30',cr:70.6,slope:134,
+  r2:{ld:1,ctp:16,name:'America',day:'lør 6. feb',date:'2027-02-06',tee:'10:20 og 10:30',cr:70.6,slope:134,
     par:[5,4,4,3,4,5,4,3,5,4,3,4,4,3,5,3,4,5],
     si:[10,14,16,6,12,2,4,18,8,7,13,5,3,15,1,17,9,11],
     len:[438,308,275,153,278,437,396,97,458,337,209,346,341,126,479,105,326,491]},
-  r3:{name:'Asia',day:'søn 7. feb',date:'2027-02-07',tee:'10:30 og 10:40',cr:69.1,slope:139,
+  r3:{ld:5,ctp:3,name:'Asia',day:'søn 7. feb',date:'2027-02-07',tee:'10:30 og 10:40',cr:69.1,slope:139,
     par:[4,4,3,4,5,4,3,4,5,5,3,4,4,4,4,5,3,4],
     si:[12,16,18,2,10,4,14,8,6,1,13,3,5,17,11,7,15,9],
     len:[286,252,119,279,461,325,125,338,424,460,164,314,368,281,333,435,101,336]}
@@ -188,7 +188,7 @@ const fmtPts=n=>Number.isInteger(n)?String(n):n.toFixed(1).replace('.',',');
 
 const DEF_PLAYERS=[['p1','Kasper Elgstøen'],['p2','Håkon Bergesen'],['p3','Karl Petter Gjertsen'],['p4','Robin Andersen'],['p5','Tord Jerijærvi'],['p6','Tobias Skodbo']].map(([id,name])=>({id,name,hcp:null}));
 function cfg(){const c=S.cfg||{players:DEF_PLAYERS};const p={...DEF_PTS,...(c.pts||{})};if(!Array.isArray(p.place))p.place=DEF_PTS.place;return{players:Array.isArray(c.players)?c.players:[],pts:p,stake:+c.stake||0}}
-function rnd(rid){const C=COURSES[rid];return{game:'stroke',teamA:[],flight1:[],count:2,cr:C.cr,slope:C.slope,ldHole:0,ldWin:'',ctpHole:0,ctpWin:'',winner:'',done:false,...(S.rounds[rid]||{})}}
+function rnd(rid){const C=COURSES[rid];return{game:'stroke',teamA:[],flight1:[],count:2,cr:C.cr,slope:C.slope,ldHole:C.ld,ldWin:'',ctpHole:C.ctp,ctpWin:'',winner:'',done:false,...(S.rounds[rid]||{})}}
 function holes(rid,key){const h=(S.scores[rid+'_'+key]||{}).h;const out=[];for(let i=0;i<18;i++)out.push(h&&h[i]>0?h[i]:null);return out}
 const indiv=g=>g!=='scramble';
 const pname=id=>{const p=cfg().players.find(p=>p.id===id);return p?first(p.name):''};
