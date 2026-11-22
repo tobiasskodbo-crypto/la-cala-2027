@@ -4,7 +4,7 @@ service cloud.firestore {
     // Alle med lenken kan lese og føre score. Kun appens tre samlinger er åpne.
     match /trip/{doc}   { allow read, write: if true; }
     match /rounds/{doc} { allow read, write: if true; }
-    match /scores/{doc} { allow read, write: if request.resource == null || request.resource.size() < 50; }
+    match /scores/{doc} { allow read, write: if true; }
     match /{document=**} { allow read, write: if false; }
   }
 }
