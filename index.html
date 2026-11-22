@@ -89,6 +89,7 @@ td.nm{text-align:left;font-weight:600;overflow-wrap:anywhere}
 
 .match{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .side{border-radius:8px;padding:10px 12px;background:var(--soft);border-top:3px solid var(--line);min-width:0}
+.win{font-weight:600}
 .side.A{border-top-color:var(--ta)} .side.B{border-top-color:var(--tb)}
 .side b{font:700 28px/1 var(--disp);display:block}
 .side span{font-size:12.5px;color:var(--mut);overflow-wrap:anywhere}
@@ -187,7 +188,7 @@ const fmtPts=n=>Number.isInteger(n)?String(n):n.toFixed(1).replace('.',',');
 
 const DEF_PLAYERS=[['p1','Kasper Elgstøen'],['p2','Håkon Bergesen'],['p3','Karl Petter Gjertsen'],['p4','Robin Andersen'],['p5','Tord Jerijærvi'],['p6','Tobias Skodbo']].map(([id,name])=>({id,name,hcp:null}));
 function cfg(){const c=S.cfg||{players:DEF_PLAYERS};const p={...DEF_PTS,...(c.pts||{})};if(!Array.isArray(p.place))p.place=DEF_PTS.place;return{players:Array.isArray(c.players)?c.players:[],pts:p,stake:+c.stake||0}}
-function rnd(rid){const C=COURSES[rid];return{game:'stroke',teamA:[],flight1:[],count:2,cr:C.cr,slope:C.slope,ldHole:0,ldWin:'',ctpHole:0,ctpWin:'',done:false,...(S.rounds[rid]||{})}}
+function rnd(rid){const C=COURSES[rid];return{game:'stroke',teamA:[],flight1:[],count:2,cr:C.cr,slope:C.slope,ldHole:0,ldWin:'',ctpHole:0,ctpWin:'',winner:'',done:false,...(S.rounds[rid]||{})}}
 function holes(rid,key){const h=(S.scores[rid+'_'+key]||{}).h;const out=[];for(let i=0;i<18;i++)out.push(h&&h[i]>0?h[i]:null);return out}
 const indiv=g=>g!=='scramble';
 const pname=id=>{const p=cfg().players.find(p=>p.id===id);return p?first(p.name):''};
@@ -221,13 +222,15 @@ function tstat(rid,t){
   }
   return{m,n,net,gross,hcp}
 }
+function autoWinner(rid){const A=tstat(rid,'A'),B=tstat(rid,'B');if(!A.m.length||!A.n||!B.n)return'';const d=A.net-B.net;return Math.abs(d)<1e-9?'tie':d<0?'A':'B'}
+function winnerOf(rid){const R=rnd(rid);return R.winner||autoWinner(rid)}
 function roundPoints(rid){
   const R=rnd(rid);if(!R.done)return null;
   const c=cfg(),P=c.pts,out={};c.players.forEach(p=>out[p.id]={team:0,place:0,bonus:0,total:0});
   const A=tstat(rid,'A'),B=tstat(rid,'B');
-  if(A.n&&B.n){const d=A.net-B.net,tie=Math.abs(d)<1e-9;
-    A.m.forEach(p=>out[p.id].team=tie?P.tie:d<0?P.win:P.loss);
-    B.m.forEach(p=>out[p.id].team=tie?P.tie:d>0?P.win:P.loss)}
+  const w=winnerOf(rid);
+  if(w){A.m.forEach(p=>out[p.id].team=w==='tie'?P.tie:w==='A'?P.win:P.loss);
+    B.m.forEach(p=>out[p.id].team=w==='tie'?P.tie:w==='B'?P.win:P.loss)}
   if(R.game==='stroke'){
     const L=c.players.map(p=>({id:p.id,net:pstat(rid,p).net,n:pstat(rid,p).n})).filter(x=>x.n>0).sort((a,b)=>a.net-b.net);
     let i=0;while(i<L.length){let j=i;while(j+1<L.length&&L[j+1].net===L[i].net)j++;
@@ -306,7 +309,9 @@ function matchHtml(rid){
   const R=rnd(rid),A=tstat(rid,'A'),B=tstat(rid,'B');
   if(!A.m.length)return'<p class="mut" style="margin:0">Lagene er ikke satt for denne runden. Trekk lag under Runder.</p>';
   const side=(t,T)=>'<div class="side '+t+'"><b>'+(T.n?fmtPar(T.net):'–')+'</b><span>Lag '+t+': '+esc(T.m.map(p=>first(p.name)).join(', '))+(T.n?' · etter '+T.n:'')+(R.game==='scramble'?' · lag-hcp '+T.hcp:'')+'</span></div>';
-  return'<div class="match">'+side('A',A)+side('B',B)+'</div>'
+  const w=winnerOf(rid);let line='';
+  if(w){const lbl=R.done?'Vinner':'Leder';line=w==='tie'?'<div class="win">'+(R.done?'Uavgjort':'Likt så langt')+'</div>':'<div class="win '+w+'"><span class="tag '+w+'">'+lbl+'</span> Lag '+w+': '+esc((w==='A'?A:B).m.map(p=>first(p.name)).join(', '))+(R.winner?' <span class="mut">(valgt manuelt)</span>':'')+'</div>'}
+  return'<div class="match">'+side('A',A)+side('B',B)+'</div>'+line
 }
 function vTavle(){
   const c=cfg();if(!c.players.length)return noPlayers();
@@ -386,6 +391,8 @@ function vRunder(){
     const tt=C.tee.split(' og ');s+='<div><div class="hd" style="margin-bottom:4px"><h3>Lag (går i samme flight)</h3><button class="btn sm" data-act="draw" '+x+'>Trekk lag</button></div><p class="mut" style="margin:0 0 4px">Lag A starter '+tt[0]+', Lag B starter '+(tt[1]||tt[0])+'.</p>';
     c.players.forEach(p=>{s+='<div class="as"><div><b>'+esc(first(p.name))+'</b> <span class="mut">spillehcp '+chOf(p,rid)+'</span></div>'+seg('team',[['A','Lag A'],['B','Lag B']],R.teamA.length?(R.teamA.includes(p.id)?'A':'B'):'',x+' data-p="'+p.id+'"','t')+'</div>'});
     s+='</div>';
+    const aw=autoWinner(rid),awT=aw==='tie'?'uavgjort':aw?'Lag '+aw:'ikke klart ennå';
+    s+='<div><h3 style="margin-bottom:6px">Vinner av runden</h3>'+seg('winner',[['','Etter score'],['A','Lag A'],['B','Lag B'],['tie','Uavgjort']],R.winner,x,'t')+'<p class="mut" style="margin:6px 0 0">Etter score: '+awT+'. Alle tre på vinnerlaget får lagpoengene når runden avsluttes.</p></div>';
     const hOpt=[[0,'Ikke i bruk']].concat(C.par.map((p,j)=>[j+1,'Hull '+(j+1)+' (par '+p+')'])),wOpt=[['','Ikke avgjort']].concat(c.players.map(p=>[p.id,first(p.name)]));
     s+='<div class="grid2"><label class="f">Longest drive'+sel('ldHole:'+rid,hOpt.filter(o=>o[0]===0||C.par[o[0]-1]>3),R.ldHole,'ldh-'+rid)+'</label><label class="f">Vinner'+sel('ldWin:'+rid,wOpt,R.ldWin,'ldw-'+rid)+'</label><label class="f">Closest to pin'+sel('ctpHole:'+rid,hOpt.filter(o=>o[0]===0||C.par[o[0]-1]===3),R.ctpHole,'cth-'+rid)+'</label><label class="f">Vinner'+sel('ctpWin:'+rid,wOpt,R.ctpWin,'ctw-'+rid)+'</label></div>';
     s+='<details data-d="'+rid+'"'+(S.open[rid]?' open':'')+'><summary>Scorekort</summary>'+cardTable(rid)+'</details>';
@@ -440,6 +447,7 @@ view.addEventListener('click',e=>{
   else if(a==='test'){fillTest();S.testMsg='Testscore lagt inn i alle tre rundene. Se Tavle, og avslutt en runde under Runder for å se poengene.'}
   else if(a==='reset'){if(S.confirmReset){resetAll();S.confirmReset=false;S.testMsg='All score er nullstilt.'}else S.confirmReset=true}
   else if(a==='done')updRound(rid,r=>r.done=!r.done);
+  else if(a==='winner')updRound(rid,r=>r.winner=v);
   else if(a==='add')updCfg(c=>c.players.push({id:'p'+Date.now().toString(36),name:'Ny spiller',hcp:null}));
   else if(a==='del'){if(S.confirmDel===v){updCfg(c=>c.players=c.players.filter(p=>p.id!==v));S.confirmDel=''}else S.confirmDel=v}
   render(true)
