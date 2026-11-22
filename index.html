@@ -262,6 +262,22 @@ async function flush(path){
   catch(e){if(e&&e.code==='permission-denied')S.ro=true;else S.err='Lagringen feilet. Sjekk nettet og prøv igjen.';render(true)}
   w.busy=false;if(w.data!=null)flush(path)
 }
+function half(ids){const x=ids.slice();for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]]}return x.slice(0,Math.ceil(x.length/2))}
+function fillTest(){
+  const c=cfg(),ids=c.players.map(p=>p.id),ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  RIDS.forEach(rid=>{
+    updRound(rid,r=>{if(!r.teamA||!r.teamA.length)r.teamA=half(ids);if(!r.flight1||!r.flight1.length)r.flight1=half(ids)});
+    const C=COURSES[rid],R=rnd(rid);
+    if(R.game==='scramble')['A','B'].forEach(t=>{const h=C.par.map(p=>Math.max(2,p+ri(-1,1)-(Math.random()<.15?1:0)));S.scores[rid+'_t'+t]={h};save('scores/'+rid+'_t'+t,{h})});
+    else c.players.forEach(p=>{const ch=chOf(p,rid);const h=C.par.map((par,i)=>Math.max(2,par+strokesOn(ch,C.si[i])+ri(-1,1)+(Math.random()<.12?1:0)));S.scores[rid+'_'+p.id]={h};save('scores/'+rid+'_'+p.id,{h})});
+  })
+}
+function resetAll(){
+  Object.values(W).forEach(w=>{clearTimeout(w.timer);w.data=null});
+  S.scores={};S.rounds={};
+  if(!db)return;
+  ['scores','rounds'].forEach(col=>db.collection(col).get().then(q=>q.docs.forEach(d=>d.ref.delete().catch(()=>{}))).catch(()=>{S.err='Nullstillingen feilet. Sjekk nettet og prøv igjen.';render(true)}));
+}
 function updCfg(fn){const c=clone(S.cfg||{players:DEF_PLAYERS});const full={players:c.players||[],pts:{...DEF_PTS,...(c.pts||{})},stake:c.stake||0};fn(full);S.cfg=full;save('trip/config',full)}
 function updRound(rid,fn){const r=clone(S.rounds[rid]);fn(r);S.rounds[rid]=r;save('rounds/'+rid,r)}
 function bump(key,d){
@@ -386,6 +402,7 @@ function vOppsett(){
   s+='<button class="btn" data-act="add">Legg til spiller</button><p class="mut" style="margin:0">Spillehcp per bane = hcp × slope / 113 + (CR − par), avrundet. Slagene fordeles etter hullindeks.</p></section>';
   const num=(k,l)=>'<label class="f">'+l+'<input id="pt-'+k+'" data-chg="pt:'+k+'" inputmode="decimal" value="'+String(P[k]).replace('.',',')+'"></label>';
   s+='<section class="card"><h2>Poengsystem</h2><p class="mut" style="margin:0">Poengene deles ut per spiller når runden avsluttes, og legges sammen over de tre rundene.</p><h3>Lagkamp (alle spillformer)</h3><div class="grid3">'+num('win','Seier')+num('tie','Uavgjort')+num('loss','Tap')+'</div><h3>Plassering netto (kun slagspill)</h3><label class="f">Poeng for 1.–6. plass, delt ved likt<input id="pt-place" data-chg="place" inputmode="text" value="'+esc(P.place.join(', '))+'"></label><h3>Bonus</h3><div class="grid3">'+num('ld','Longest drive')+num('ctp','Closest to pin')+num('birdie','Per birdie')+'</div><label class="f">Innsats per spiller (kr)<input id="stake" data-chg="stake" inputmode="numeric" value="'+c.stake+'"></label></section>';
+  s+='<section class="card"><h2>Test og nullstilling</h2><p class="mut" style="margin:0">Fyll inn fiktiv score for å se at tavla og poengene regnes riktig. Lag og flighter trekkes automatisk der de mangler. Nullstill sletter all score, lag, flighter, spillformer og longest drive/closest to pin i alle runder. Spillere, hcp og poengsystem blir stående.</p>'+(S.testMsg?'<div class="note">'+esc(S.testMsg)+'</div>':'')+'<div class="grid2"><button class="btn" data-act="test">Fyll inn testscore</button><button class="btn'+(S.confirmReset?' pri':'')+'" data-act="reset">'+(S.confirmReset?'Trykk igjen for å slette alt':'Nullstill all score')+'</button></div></section>';
   s+='<section class="card"><h2>Baner, gul tee</h2><p class="mut" style="margin:0">Sjekk CR og slope mot slopetabellen i klubbhuset og rett her om de avviker.</p>';
   RIDS.forEach(rid=>{const R=rnd(rid);s+='<div class="grid3"><div style="align-self:end;padding-bottom:10px"><b>'+COURSES[rid].name+'</b></div><label class="f">CR<input id="cr-'+rid+'" data-chg="cr:'+rid+'" inputmode="decimal" value="'+String(R.cr).replace('.',',')+'"></label><label class="f">Slope<input id="sl-'+rid+'" data-chg="slope:'+rid+'" inputmode="numeric" value="'+R.slope+'"></label></div>'});
   s+='</section><section class="card"><h2>Slik regnes spillene</h2><p class="mut" style="margin:0"><b>Slagspill:</b> alle spiller egen ball. Lagets resultat er summen av de tre nettoscorene.<br><b>Scramble:</b> én lagscore per hull, minus lag-hcp (20/15/10 % av spillehcp, lavest først).<br><b>Shamble:</b> beste utslag velges, deretter egen ball. De beste nettoballene per hull teller for laget.</p></section>';
@@ -403,7 +420,7 @@ function render(force){
   document.querySelectorAll('.tabs a').forEach(t=>{if(t.dataset.tab===S.view)t.setAttribute('aria-current','page');else t.removeAttribute('aria-current')});
   if(fid){const el=document.getElementById(fid);if(el&&el.tagName!=='INPUT')el.focus({preventScroll:true})}
 }
-function route(){const h=location.hash.slice(1);S.view=['tavle','score','runder','oppsett'].includes(h)?h:'tavle';S.confirmDel='';render(true);window.scrollTo(0,0)}
+function route(){const h=location.hash.slice(1);S.view=['tavle','score','runder','oppsett'].includes(h)?h:'tavle';S.confirmDel='';S.confirmReset=false;S.testMsg='';render(true);window.scrollTo(0,0)}
 window.addEventListener('hashchange',route);
 view.addEventListener('focusout',()=>setTimeout(()=>{if(S.dirty)render()},0));
 view.addEventListener('toggle',e=>{const d=e.target;if(d.dataset&&d.dataset.d)S.open[d.dataset.d]=d.open},true);
@@ -419,7 +436,9 @@ view.addEventListener('click',e=>{
   else if(a==='count')updRound(rid,r=>r.count=+v);
   else if(a==='team')updRound(rid,r=>{const s=new Set((r.teamA&&r.teamA.length?r.teamA:[]).filter(x=>ids.includes(x)));v==='A'?s.add(pid):s.delete(pid);r.teamA=[...s]});
   else if(a==='flight')updRound(rid,r=>{const s=new Set((r.flight1||[]).filter(x=>ids.includes(x)));v==='1'?s.add(pid):s.delete(pid);r.flight1=[...s]});
-  else if(a==='draw'){const sh=()=>{const x=ids.slice();for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]]}return x.slice(0,Math.ceil(x.length/2))};updRound(rid,r=>{r.teamA=sh();r.flight1=sh()})}
+  else if(a==='draw')updRound(rid,r=>{r.teamA=half(ids);r.flight1=half(ids)});
+  else if(a==='test'){fillTest();S.testMsg='Testscore lagt inn i alle tre rundene. Se Tavle, og avslutt en runde under Runder for å se poengene.'}
+  else if(a==='reset'){if(S.confirmReset){resetAll();S.confirmReset=false;S.testMsg='All score er nullstilt.'}else S.confirmReset=true}
   else if(a==='done')updRound(rid,r=>r.done=!r.done);
   else if(a==='add')updCfg(c=>c.players.push({id:'p'+Date.now().toString(36),name:'Ny spiller',hcp:null}));
   else if(a==='del'){if(S.confirmDel===v){updCfg(c=>c.players=c.players.filter(p=>p.id!==v));S.confirmDel=''}else S.confirmDel=v}
@@ -453,8 +472,8 @@ async function boot(){
   const ok=m=>{if(m&&!m.fromCache){clearTimeout(slow);if(S.slow){S.slow=false}}};
   const fail=e=>{clearTimeout(slow);S.slow=false;S.cfgSeen=true;if(e&&e.code==='permission-denied')S.ro=true;else S.err='Mistet kontakten med lagringen. Last siden på nytt.';render()};
   db.doc('trip/config').onSnapshot({includeMetadataChanges:true},s=>{ok(s.metadata);if(!pending('trip/config'))S.cfg=s.exists?s.data():null;S.cfgSeen=true;render()},fail);
-  db.collection('rounds').onSnapshot({includeMetadataChanges:true},q=>{ok(q.metadata);q.docs.forEach(d=>{if(RIDS.includes(d.id)&&!pending('rounds/'+d.id))S.rounds[d.id]=d.data()});render()},fail);
-  db.collection('scores').onSnapshot({includeMetadataChanges:true},q=>{ok(q.metadata);q.docs.forEach(d=>{if(!pending('scores/'+d.id))S.scores[d.id]=d.data()});render()},fail);
+  db.collection('rounds').onSnapshot({includeMetadataChanges:true},q=>{ok(q.metadata);const nx={};q.docs.forEach(d=>{if(RIDS.includes(d.id))nx[d.id]=d.data()});Object.keys(S.rounds).forEach(k=>{if(pending('rounds/'+k))nx[k]=S.rounds[k]});S.rounds=nx;render()},fail);
+  db.collection('scores').onSnapshot({includeMetadataChanges:true},q=>{ok(q.metadata);const nx={};q.docs.forEach(d=>{nx[d.id]=d.data()});Object.keys(S.scores).forEach(k=>{if(pending('scores/'+k))nx[k]=S.scores[k]});S.scores=nx;render()},fail);
   window.addEventListener('online',()=>{S.slow=false;render()});window.addEventListener('offline',()=>{S.slow=true;render()});
 }
 boot();
