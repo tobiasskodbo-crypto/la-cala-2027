@@ -123,7 +123,7 @@ td.nm{text-align:left;font-weight:600;overflow-wrap:anywhere}
 td .m{display:inline-grid;place-items:center;min-width:22px;height:22px;border:1.5px solid transparent;font-weight:600}
 td .m.bi,td .m.ea{border-color:var(--acc);border-radius:50%;color:var(--acc)}
 td .m.bo,td .m.db{border-color:var(--mut)}
-.as{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.as{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
 .as:last-child{border-bottom:0}
 .as div{min-width:0;overflow-wrap:anywhere}
 .pl{display:grid;grid-template-columns:1fr 84px auto;gap:8px;align-items:end}
@@ -266,7 +266,7 @@ function half(ids){const x=ids.slice();for(let i=x.length-1;i>0;i--){const j=Mat
 function fillTest(){
   const c=cfg(),ids=c.players.map(p=>p.id),ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
   RIDS.forEach(rid=>{
-    updRound(rid,r=>{if(!r.teamA||!r.teamA.length)r.teamA=half(ids);if(!r.flight1||!r.flight1.length)r.flight1=half(ids)});
+    updRound(rid,r=>{if(!r.teamA||!r.teamA.length)r.teamA=half(ids)});
     const C=COURSES[rid],R=rnd(rid);
     if(R.game==='scramble')['A','B'].forEach(t=>{const h=C.par.map(p=>Math.max(2,p+ri(-1,1)-(Math.random()<.15?1:0)));S.scores[rid+'_t'+t]={h};save('scores/'+rid+'_t'+t,{h})});
     else c.players.forEach(p=>{const ch=chOf(p,rid);const h=C.par.map((par,i)=>Math.max(2,par+strokesOn(ch,C.si[i])+ri(-1,1)+(Math.random()<.12?1:0)));S.scores[rid+'_'+p.id]={h};save('scores/'+rid+'_'+p.id,{h})});
@@ -351,9 +351,9 @@ function vScore(){
     else['A','B'].forEach(t=>{const T=tstat(rid,t);s+=row('t'+t,'Lag '+t,esc(T.m.map(p=>first(p.name)).join(', '))+' · '+(T.n?fmtPar(T.gross)+' brutto etter '+T.n:'ingen hull ført'),t)});
     s+='</div></section>'
   }else{
-    const f1=c.players.filter(p=>R.flight1.includes(p.id)),f2=c.players.filter(p=>!R.flight1.includes(p.id));
-    let groups=R.flight1.length?[['Flight 1',f1],['Flight 2',f2]]:[['Alle spillere',c.players]];
-    if(groups.length>1&&f2.some(p=>p.id===S.me))groups.reverse();
+    const tt=C.tee.split(' og '),fA=members(rid,'A'),fB=members(rid,'B');
+    let groups=R.teamA.length?[['Lag A · start '+tt[0],fA],['Lag B · start '+(tt[1]||tt[0]),fB]]:[['Alle spillere',c.players]];
+    if(groups.length>1&&fB.some(p=>p.id===S.me))groups.reverse();
     groups.forEach(g=>{if(!g[1].length)return;s+='<section class="card"><h3>'+g[0]+'</h3><div>';
       g[1].forEach(p=>{const st=pstat(rid,p),x=strokesOn(st.ch,C.si[i]),t=R.teamA.length?(R.teamA.includes(p.id)?'A':'B'):'';
         s+=row(p.id,first(p.name)+(p.id===S.me?' (deg)':''),(st.n?fmtPar(st.gross)+' brutto · '+fmtPar(st.net)+' netto':'Ingen hull ført')+(x?' · '+(x>0?'får '+x:'gir '+(-x))+' slag her':''),t)});
@@ -383,8 +383,8 @@ function vRunder(){
     s+='<div><h3 style="margin-bottom:6px">Spillform</h3>'+seg('game',[['stroke','Slagspill'],['scramble','Scramble'],['shamble','Shamble']],R.game,x)+'</div>';
     if(R.game==='shamble')s+='<div><h3 style="margin-bottom:6px">Tellende baller per hull</h3>'+seg('count',[[1,'1 beste'],[2,'2 beste']],R.count,x)+'</div>';
     if(R.game==='scramble'&&R.teamA.length)s+='<p class="mut" style="margin:0">Lag-hcp (20/15/10 % av spillehcp): Lag A '+tstat(rid,'A').hcp+', Lag B '+tstat(rid,'B').hcp+'.</p>';
-    s+='<div><div class="hd" style="margin-bottom:4px"><h3>Lag og flight</h3><button class="btn sm" data-act="draw" '+x+'>Trekk lag og flighter</button></div>';
-    c.players.forEach(p=>{s+='<div class="as"><div><b>'+esc(first(p.name))+'</b> <span class="mut">spillehcp '+chOf(p,rid)+'</span></div>'+seg('team',[['A','A'],['B','B']],R.teamA.length?(R.teamA.includes(p.id)?'A':'B'):'',x+' data-p="'+p.id+'"','t')+seg('flight',[[1,'F1'],[2,'F2']],R.flight1.length?(R.flight1.includes(p.id)?1:2):'',x+' data-p="'+p.id+'"')+'</div>'});
+    const tt=C.tee.split(' og ');s+='<div><div class="hd" style="margin-bottom:4px"><h3>Lag (går i samme flight)</h3><button class="btn sm" data-act="draw" '+x+'>Trekk lag</button></div><p class="mut" style="margin:0 0 4px">Lag A starter '+tt[0]+', Lag B starter '+(tt[1]||tt[0])+'.</p>';
+    c.players.forEach(p=>{s+='<div class="as"><div><b>'+esc(first(p.name))+'</b> <span class="mut">spillehcp '+chOf(p,rid)+'</span></div>'+seg('team',[['A','Lag A'],['B','Lag B']],R.teamA.length?(R.teamA.includes(p.id)?'A':'B'):'',x+' data-p="'+p.id+'"','t')+'</div>'});
     s+='</div>';
     const hOpt=[[0,'Ikke i bruk']].concat(C.par.map((p,j)=>[j+1,'Hull '+(j+1)+' (par '+p+')'])),wOpt=[['','Ikke avgjort']].concat(c.players.map(p=>[p.id,first(p.name)]));
     s+='<div class="grid2"><label class="f">Longest drive'+sel('ldHole:'+rid,hOpt.filter(o=>o[0]===0||C.par[o[0]-1]>3),R.ldHole,'ldh-'+rid)+'</label><label class="f">Vinner'+sel('ldWin:'+rid,wOpt,R.ldWin,'ldw-'+rid)+'</label><label class="f">Closest to pin'+sel('ctpHole:'+rid,hOpt.filter(o=>o[0]===0||C.par[o[0]-1]===3),R.ctpHole,'cth-'+rid)+'</label><label class="f">Vinner'+sel('ctpWin:'+rid,wOpt,R.ctpWin,'ctw-'+rid)+'</label></div>';
@@ -395,14 +395,14 @@ function vRunder(){
 }
 function vOppsett(){
   const c=cfg(),P=c.pts;
-  let s='<section class="card"><h2>Hvem er du?</h2><p class="mut" style="margin:0">Valget lagres bare på denne telefonen og legger din flight øverst når du fører score.</p>'+sel('me',[['','Ikke valgt']].concat(c.players.map(p=>[p.id,p.name])),S.me,'me')+'</section>';
+  let s='<section class="card"><h2>Hvem er du?</h2><p class="mut" style="margin:0">Valget lagres bare på denne telefonen og legger laget ditt øverst når du fører score.</p>'+sel('me',[['','Ikke valgt']].concat(c.players.map(p=>[p.id,p.name])),S.me,'me')+'</section>';
   s+='<section class="card"><h2>Spillere og handicap</h2>';
   if(!c.players.length)s+='<p class="mut" style="margin:0">'+(S.cfgSeen||S.nodb?'Ingen spillere lagt inn ennå.':'Henter spillere …')+'</p>';
   c.players.forEach(p=>{s+='<div class="pl"><label class="f">Navn<input id="pn-'+p.id+'" data-chg="pname:'+p.id+'" value="'+esc(p.name)+'" autocomplete="off"></label><label class="f">Hcp<input id="ph-'+p.id+'" data-chg="phcp:'+p.id+'" inputmode="decimal" placeholder="f.eks. 14,2" value="'+(p.hcp==null?'':String(p.hcp).replace('.',','))+'"></label><button class="btn sm" data-act="del" data-v="'+p.id+'">'+(S.confirmDel===p.id?'Bekreft':'Fjern')+'</button></div>'});
   s+='<button class="btn" data-act="add">Legg til spiller</button><p class="mut" style="margin:0">Spillehcp per bane = hcp × slope / 113 + (CR − par), avrundet. Slagene fordeles etter hullindeks.</p></section>';
   const num=(k,l)=>'<label class="f">'+l+'<input id="pt-'+k+'" data-chg="pt:'+k+'" inputmode="decimal" value="'+String(P[k]).replace('.',',')+'"></label>';
   s+='<section class="card"><h2>Poengsystem</h2><p class="mut" style="margin:0">Poengene deles ut per spiller når runden avsluttes, og legges sammen over de tre rundene.</p><h3>Lagkamp (alle spillformer)</h3><div class="grid3">'+num('win','Seier')+num('tie','Uavgjort')+num('loss','Tap')+'</div><h3>Plassering netto (kun slagspill)</h3><label class="f">Poeng for 1.–6. plass, delt ved likt<input id="pt-place" data-chg="place" inputmode="text" value="'+esc(P.place.join(', '))+'"></label><h3>Bonus</h3><div class="grid3">'+num('ld','Longest drive')+num('ctp','Closest to pin')+num('birdie','Per birdie')+'</div><label class="f">Innsats per spiller (kr)<input id="stake" data-chg="stake" inputmode="numeric" value="'+c.stake+'"></label></section>';
-  s+='<section class="card"><h2>Test og nullstilling</h2><p class="mut" style="margin:0">Fyll inn fiktiv score for å se at tavla og poengene regnes riktig. Lag og flighter trekkes automatisk der de mangler. Nullstill sletter all score, lag, flighter, spillformer og longest drive/closest to pin i alle runder. Spillere, hcp og poengsystem blir stående.</p>'+(S.testMsg?'<div class="note">'+esc(S.testMsg)+'</div>':'')+'<div class="grid2"><button class="btn" data-act="test">Fyll inn testscore</button><button class="btn'+(S.confirmReset?' pri':'')+'" data-act="reset">'+(S.confirmReset?'Trykk igjen for å slette alt':'Nullstill all score')+'</button></div></section>';
+  s+='<section class="card"><h2>Test og nullstilling</h2><p class="mut" style="margin:0">Fyll inn fiktiv score for å se at tavla og poengene regnes riktig. Lag trekkes automatisk der de mangler. Nullstill sletter all score, lag, spillformer og longest drive/closest to pin i alle runder. Spillere, hcp og poengsystem blir stående.</p>'+(S.testMsg?'<div class="note">'+esc(S.testMsg)+'</div>':'')+'<div class="grid2"><button class="btn" data-act="test">Fyll inn testscore</button><button class="btn'+(S.confirmReset?' pri':'')+'" data-act="reset">'+(S.confirmReset?'Trykk igjen for å slette alt':'Nullstill all score')+'</button></div></section>';
   s+='<section class="card"><h2>Baner, gul tee</h2><p class="mut" style="margin:0">Sjekk CR og slope mot slopetabellen i klubbhuset og rett her om de avviker.</p>';
   RIDS.forEach(rid=>{const R=rnd(rid);s+='<div class="grid3"><div style="align-self:end;padding-bottom:10px"><b>'+COURSES[rid].name+'</b></div><label class="f">CR<input id="cr-'+rid+'" data-chg="cr:'+rid+'" inputmode="decimal" value="'+String(R.cr).replace('.',',')+'"></label><label class="f">Slope<input id="sl-'+rid+'" data-chg="slope:'+rid+'" inputmode="numeric" value="'+R.slope+'"></label></div>'});
   s+='</section><section class="card"><h2>Slik regnes spillene</h2><p class="mut" style="margin:0"><b>Slagspill:</b> alle spiller egen ball. Lagets resultat er summen av de tre nettoscorene.<br><b>Scramble:</b> én lagscore per hull, minus lag-hcp (20/15/10 % av spillehcp, lavest først).<br><b>Shamble:</b> beste utslag velges, deretter egen ball. De beste nettoballene per hull teller for laget.</p></section>';
@@ -436,7 +436,7 @@ view.addEventListener('click',e=>{
   else if(a==='count')updRound(rid,r=>r.count=+v);
   else if(a==='team')updRound(rid,r=>{const s=new Set((r.teamA&&r.teamA.length?r.teamA:[]).filter(x=>ids.includes(x)));v==='A'?s.add(pid):s.delete(pid);r.teamA=[...s]});
   else if(a==='flight')updRound(rid,r=>{const s=new Set((r.flight1||[]).filter(x=>ids.includes(x)));v==='1'?s.add(pid):s.delete(pid);r.flight1=[...s]});
-  else if(a==='draw')updRound(rid,r=>{r.teamA=half(ids);r.flight1=half(ids)});
+  else if(a==='draw')updRound(rid,r=>{r.teamA=half(ids)});
   else if(a==='test'){fillTest();S.testMsg='Testscore lagt inn i alle tre rundene. Se Tavle, og avslutt en runde under Runder for å se poengene.'}
   else if(a==='reset'){if(S.confirmReset){resetAll();S.confirmReset=false;S.testMsg='All score er nullstilt.'}else S.confirmReset=true}
   else if(a==='done')updRound(rid,r=>r.done=!r.done);
