@@ -90,6 +90,11 @@ td.nm{text-align:left;font-weight:600;overflow-wrap:anywhere}
 .match{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .side{border-radius:8px;padding:10px 12px;background:var(--soft);border-top:3px solid var(--line);min-width:0}
 .win{font-weight:600}
+table.sh td.cA{background:color-mix(in srgb,var(--ta) 22%,transparent)}
+table.sh td.cB{background:color-mix(in srgb,var(--tb) 22%,transparent)}
+table.sh td.tm{font-weight:600;color:var(--mut)}
+table.sh td.wA{background:var(--ta);color:var(--card)}
+table.sh td.wB{background:var(--tb);color:var(--card)}
 .side.A{border-top-color:var(--ta)} .side.B{border-top-color:var(--tb)}
 .side b{font:700 28px/1 var(--disp);display:block}
 .side span{font-size:12.5px;color:var(--mut);overflow-wrap:anywhere}
@@ -347,6 +352,8 @@ function vScore(){
   const scr=R.game==='scramble',keys=scr?['tA','tB']:c.players.map(p=>p.id);
   const filled=j=>keys.every(k=>holes(rid,k)[j]!=null);
   s+='<section class="card"><div class="holebar"><button class="btn" data-act="hole" data-v="'+(S.hole-1)+'" aria-label="Forrige hull"'+(S.hole<2?' disabled':'')+'>‹</button><div class="mid"><b>Hull '+S.hole+'</b><span class="mut">Par '+par+' · indeks '+C.si[i]+' · '+C.len[i]+' m</span></div><button class="btn" data-act="hole" data-v="'+(S.hole+1)+'" aria-label="Neste hull"'+(S.hole>17?' disabled':'')+'>›</button></div>';
+  if(R.game==='shamble'&&R.teamA.length){const a=shHole(rid,i,'A'),b=shHole(rid,i,'B'),nm=h=>h?h.cnt.map(pname).join(' og '):'';
+    s+='<div class="match"><div class="side A"><b>'+(a?fmtPar(a.val):'–')+'</b><span>Lag A på hullet'+(a?' · teller: '+esc(nm(a)):'')+'</span></div><div class="side B"><b>'+(b?fmtPar(b.val):'–')+'</b><span>Lag B på hullet'+(b?' · teller: '+esc(nm(b)):'')+'</span></div></div>'}
   s+='<div class="strip">'+C.par.map((_,j)=>'<button data-act="hole" data-v="'+(j+1)+'" class="'+(filled(j)?'f':'')+'" aria-current="'+(j===i)+'" aria-label="Hull '+(j+1)+'">'+(j+1)+'</button>').join('')+'</div></section>';
   const row=(key,name,sub,tag)=>{const v=holes(rid,key)[i];
     return'<div class="row"><div class="who"><b>'+esc(name)+'</b>'+(tag?' <span class="tag '+tag+'">'+tag+'</span>':'')+'<small>'+sub+'</small></div><div class="step"><button data-act="dec" data-v="'+key+'" aria-label="Ett slag færre for '+esc(name)+'"'+lock+'>−</button><span class="sc '+mark(v,par)+'">'+(v==null?'–':v)+'</span><button data-act="inc" data-v="'+key+'" aria-label="Ett slag mer for '+esc(name)+'"'+lock+'>+</button></div></div>'};
@@ -369,7 +376,27 @@ function vScore(){
   if(R.ctpHole===S.hole)s+='<section class="card"><h3>Closest to pin på dette hullet</h3>'+sel('ctpWin:'+rid,opts,R.ctpWin,'s-ctp')+'</section>';
   return s
 }
+function shHole(rid,i,t){
+  const C=COURSES[rid],R=rnd(rid),m=members(rid,t),k=Math.min(R.count||2,m.length);
+  const L=m.map(p=>{const v=holes(rid,p.id)[i];return v==null?null:{id:p.id,net:v-strokesOn(chOf(p,rid),C.si[i])}}).filter(Boolean).sort((a,b)=>a.net-b.net);
+  if(L.length<k)return null;const best=L.slice(0,k);
+  return{val:sum(best.map(x=>x.net))-C.par[i]*k,cnt:best.map(x=>x.id)}
+}
+function shambleCard(rid){
+  const C=COURSES[rid],R=rnd(rid),A=members(rid,'A'),B=members(rid,'B'),ps=A.concat(B);
+  const team=id=>A.some(p=>p.id===id)?'A':'B';
+  const H=[];for(let i=0;i<18;i++)H.push({A:shHole(rid,i,'A'),B:shHole(rid,i,'B')});
+  const tcell=(h,t,o)=>{if(!h)return'<td class="tm">·</td>';const win=o&&h.val<o.val;return'<td class="tm'+(win?' w'+t:'')+'">'+fmtPar(h.val)+'</td>'};
+  let s='<div class="scroll"><table class="sh"><thead><tr><th>Hull</th><th>Par</th>'+ps.map(p=>'<th><span class="tag '+team(p.id)+'">'+team(p.id)+'</span> '+esc(first(p.name).slice(0,5))+'</th>').join('')+'<th>Lag A</th><th>Lag B</th></tr></thead><tbody>';
+  const tot=(a,b)=>{const tv=t=>{const v=H.slice(a,b).map(h=>h[t]).filter(Boolean);return v.length?fmtPar(sum(v.map(x=>x.val))):'–'};
+    return'<tr class="sum"><td>'+(a===0&&b===9?'Ut':a===9?'Inn':'Tot')+'</td><td>'+sum(C.par.slice(a,b))+'</td>'+ps.map(p=>{const v=holes(rid,p.id).slice(a,b);return'<td>'+(v.some(x=>x!=null)?sum(v.map(x=>x||0)):'–')+'</td>'}).join('')+'<td>'+tv('A')+'</td><td>'+tv('B')+'</td></tr>'};
+  for(let i=0;i<18;i++){const h=H[i];
+    s+='<tr><td>'+(i+1)+'</td><td>'+C.par[i]+'</td>'+ps.map(p=>{const v=holes(rid,p.id)[i],t=team(p.id),c=h[t]&&h[t].cnt.includes(p.id);return'<td'+(c?' class="c'+t+'"':'')+'><span class="m '+mark(v,C.par[i])+'">'+(v==null?'·':v)+'</span></td>'}).join('')+tcell(h.A,'A',h.B)+tcell(h.B,'B',h.A)+'</tr>';
+    if(i===8)s+=tot(0,9);if(i===17)s+=tot(9,18)+tot(0,18)}
+  return s+'</tbody></table></div><p class="mut" style="margin:0">Fargede ruter er ballene som teller for laget (beste '+(R.count||2)+' netto per hull). Lagkolonnene viser lagets netto mot par på hullet, og laget som vant hullet er markert.</p>'
+}
 function cardTable(rid){
+  if(rnd(rid).game==='shamble'&&rnd(rid).teamA.length)return shambleCard(rid);
   const C=COURSES[rid],R=rnd(rid),c=cfg(),scr=R.game==='scramble';
   const cols=scr?[['tA','Lag A'],['tB','Lag B']]:c.players.map(p=>[p.id,first(p.name).slice(0,5)]);
   const hs=cols.map(k=>holes(rid,k[0]));
